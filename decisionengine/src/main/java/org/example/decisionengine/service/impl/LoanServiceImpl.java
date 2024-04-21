@@ -32,18 +32,16 @@ public class LoanServiceImpl implements LoanService {
         if (possibleLoanAmount.compareTo(MIN_LOAN_AMOUNT) < 0) {
             return new LoanResponse(LoanDecisionType.NEGATIVE, BigDecimal.ZERO);
         }
+        if (possibleLoanAmount.compareTo(request.amount()) < 0) {
+            return new LoanResponse(LoanDecisionType.NEGATIVE, possibleLoanAmount);
+        }
 
         return new LoanResponse(LoanDecisionType.POSITIVE, possibleLoanAmount);
     }
 
     BigDecimal getMaxPossibleLoanAmount(BigDecimal modifier, int period) {
-
         var maxLoanAmount = modifier.multiply(BigDecimal.valueOf(period));
-
-        if (maxLoanAmount.compareTo(MAX_LOAN_AMOUNT) > 0) {
-            return MAX_LOAN_AMOUNT;
-        }
-        return maxLoanAmount;
+        return maxLoanAmount.compareTo(MAX_LOAN_AMOUNT) > 0 ? MAX_LOAN_AMOUNT : maxLoanAmount;
     }
 
 }

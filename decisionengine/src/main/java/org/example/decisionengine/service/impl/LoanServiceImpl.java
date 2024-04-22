@@ -6,6 +6,7 @@ import org.example.decisionengine.model.LoanResponse;
 import org.example.decisionengine.model.enums.LoanDecisionType;
 import org.example.decisionengine.service.UserService;
 import org.example.decisionengine.service.LoanService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -16,8 +17,11 @@ public class LoanServiceImpl implements LoanService {
 
     private final UserService userService;
 
-    public static final BigDecimal MIN_LOAN_AMOUNT = BigDecimal.valueOf(2000);
-    public static final BigDecimal MAX_LOAN_AMOUNT = BigDecimal.valueOf(10000);
+    @Value("${loan.min-amount}")
+    private BigDecimal minLoanAmount;
+
+    @Value("${loan.max-amount}")
+    private BigDecimal maxLoanAmount;
 
     @Override
     public LoanResponse makeDecision(LoanRequest request) {
@@ -29,7 +33,7 @@ public class LoanServiceImpl implements LoanService {
         }
 
         var possibleLoanAmount = getMaxPossibleLoanAmount(modifier, request.period());
-        if (possibleLoanAmount.compareTo(MIN_LOAN_AMOUNT) < 0) {
+        if (possibleLoanAmount.compareTo(minLoanAmount) < 0) {
             return new LoanResponse(LoanDecisionType.NEGATIVE, BigDecimal.ZERO);
         }
         if (possibleLoanAmount.compareTo(request.amount()) < 0) {
@@ -40,8 +44,8 @@ public class LoanServiceImpl implements LoanService {
     }
 
     BigDecimal getMaxPossibleLoanAmount(BigDecimal modifier, int period) {
-        var maxLoanAmount = modifier.multiply(BigDecimal.valueOf(period));
-        return maxLoanAmount.compareTo(MAX_LOAN_AMOUNT) > 0 ? MAX_LOAN_AMOUNT : maxLoanAmount;
+        var approvedAmount = modifier.multiply(BigDecimal.valueOf(period));
+        return approvedAmount.compareTo(maxLoanAmount) > 0 ? maxLoanAmount : approvedAmount;
     }
 
 }
